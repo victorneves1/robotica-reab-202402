@@ -76,3 +76,5 @@ Stop the robot:
 
 `ros2 topic pub /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" -1
 `
+
+You can also use the script in "scripts/robot_controller.py" to control the robot in a user friendly way.

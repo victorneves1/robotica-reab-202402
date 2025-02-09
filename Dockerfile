@@ -8,10 +8,16 @@ RUN apt-get update && apt-get install -y \
     python3-rosdep \
     python3-pip \
     tmux \
+    python3-opencv \
+    ros-humble-cv-bridge \
+    ros-humble-vision-opencv \
     && rm -rf /var/lib/apt/lists/*
 
-# Install colcon-common-extensions via pip
-RUN pip3 install colcon-common-extensions
+# Install colcon-common-extensions and PyTorch with CUDA support
+RUN pip3 install colcon-common-extensions torch torchvision opencv-python
+
+# Install YOLOv11 dependencies
+RUN pip3 install seaborn pandas
 
 # Initialize rosdep (only if not already initialized)
 RUN if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then rosdep init; fi && rosdep update

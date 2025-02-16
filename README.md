@@ -23,6 +23,7 @@ docker run -it --rm \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix" \
+    --volume="/home/joaogobeti/Joao/Mestrado/Robotica_Reabilitacao/robotica-reab-202402:/root/ws" \
     ros2-humble-gazebo-classic
 ```
 

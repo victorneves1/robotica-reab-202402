@@ -15,7 +15,7 @@ Projeto de Robótica para Reabilitação 2024/02
 `docker build -t ros2-humble-gazebo-classic .`
 
 
-### Run the docker container
+### Run the docker container (in the root of the project)
 ```
 xhost +local:docker
 docker run -it --rm \
@@ -23,7 +23,7 @@ docker run -it --rm \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix" \
-    --volume="/home/joaogobeti/Joao/Mestrado/Robotica_Reabilitacao/robotica-reab-202402:/root/ws" \
+    --volume="$(pwd):/root/ws" \
     ros2-humble-gazebo-classic
 ```
 

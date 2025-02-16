@@ -30,7 +30,7 @@ RUN git clone https://github.com/ShihuaHuang95/DEIM.git && pip3 install -r /root
 # Build workspace
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 
-RUN pip3 install  "numpy<2"
+RUN pip3 install "numpy==1.24.4"
 
 # Set default environment
 

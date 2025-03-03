@@ -76,6 +76,9 @@ RUN pip3 install "numpy==1.24.4"
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+RUN echo "source /root/ws/install/setup.bash" >> /root/.bashrc
+
+RUN cp /root/ws/src/rtabmap_ros/rtabmap_launch/launch/*.launch.py /root/ws/install/rtabmap_ros/share/rtabmap_ros/
 
 # Run container in interactive mode
 CMD ["/bin/bash"]

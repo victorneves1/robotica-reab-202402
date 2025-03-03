@@ -23,7 +23,7 @@ docker run -it --rm \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix" \
-    --volume="$(pwd):/root/ws" \
+    --volume="$(pwd):/root/ws/src/landmark-detector" \
     ros2-humble-gazebo-classic
 ```
 
@@ -79,3 +79,7 @@ Stop the robot:
 `
 
 You can also use the script in "scripts/robot_controller.py" to control the robot in a user friendly way.
+
+To run the rtabmap:
+
+`ros2 launch rtabmap_ros rtabmap.launch.py use_sim_time:=true localization:=true`

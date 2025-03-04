@@ -82,4 +82,14 @@ You can also use the script in "scripts/robot_controller.py" to control the robo
 
 To run the rtabmap:
 
-`ros2 launch rtabmap_ros rtabmap.launch.py use_sim_time:=true localization:=true`
+`ros2 launch rtabmap_ros rtabmap.launch.py \
+ use_sim_time:=true \
+ approx_sync:=true \
+ approx_sync_max_interval:=0.02 \
+ rgb_topic:=/kinect_camera/image_raw \
+ depth_topic:=/kinect_camera/depth/image_raw \
+ camera_info_topic:=/kinect_camera/camera_info \
+ odom_topic:=/odom \
+ topic_queue_size:=50 \
+ sync_queue_size:=50
+ `

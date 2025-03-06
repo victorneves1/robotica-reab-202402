@@ -17,14 +17,37 @@ Projeto de Robótica para Reabilitação 2024/02
 
 ### Run the docker container (in the root of the project)
 ```
-xhost +local:docker
+xhost +local:docker &&
 docker run -it --rm \
     --net=host \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix" \
-    --volume="$(pwd):/root/ws/src/landmark-detector" \
+    --volume="$(pwd):/root/ws/src/landmark_detector" \
+    --gpus all \
     ros2-humble-gazebo-classic
+```
+
+Alternatively, create a persistent container:
+```
+xhost +local:docker &&
+docker run -it --name landmark_detector --net=host \
+    --env="DISPLAY" \
+    --env="QT_X11_NO_MITSHM=1" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix" \
+    --volume="$(pwd):/root/ws/src/landmark_detector" \
+    --gpus all \
+    ros2-humble-gazebo-classic
+```
+
+Then later you can start the container with:
+```
+docker start -ai landmark_detector
+```
+If you ever need to clean up:
+```
+docker stop landmark_detector
+docker rm landmark_detector
 ```
 
 ## Interacting with the robot

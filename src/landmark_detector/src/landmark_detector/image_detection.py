@@ -75,8 +75,8 @@ def main():
     rclpy.init()
     
     # Load model
-    config_path = "/root/ws/src/landmark-detector/src/deim/configs/deim_dfine/deim_hgnetv2_s_coco.yml"
-    resume_path = "/root/ws/src/landmark-detector/src/models/deim_dfine_hgnetv2_s_coco_120e.pth"
+    config_path = "/root/ws/src/landmark_detector/src/deim/configs/deim_dfine/deim_hgnetv2_s_coco.yml"
+    resume_path = "/root/ws/src/landmark_detector/src/models/deim_dfine_hgnetv2_s_coco_120e.pth"
     
     print(f"Loading model from {resume_path}...")
     cfg = YAMLConfig(config_path, resume=resume_path)

@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-vision-opencv \
     && rm -rf /var/lib/apt/lists/*
 
+
 # Install colcon-common-extensions and OpenCV
 RUN pip3 install colcon-common-extensions opencv-python
 
@@ -47,24 +48,17 @@ RUN if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then rosdep init
 
 # Set up workspace
 WORKDIR /root/ws
-# RUN apt update && apt install -y \
-    # ros-humble-grid-map-core
-#     python3-colcon-common-extensions \
-#     ros-humble-rosidl-default-generators \
-#     ros-humble-rosidl-default-runtime \
-#     ros-humble-rosidl-cmake \
-#     ros-humble-rosidl-typesupport-c \
-#     ros-humble-rosidl-typesupport-cpp \
-#     ros-humble-rosidl-typesupport-introspection-c \
-#     ros-humble-rosidl-typesupport-introspection-cpp
-
 RUN mkdir -p /root/ws/src
+
+# Clone RTAB-Map repositories **unconditionally** (like the old working version)
 RUN git clone https://github.com/introlab/rtabmap.git src/rtabmap
 RUN git clone --branch ros2 https://github.com/introlab/rtabmap_ros.git src/rtabmap_ros
+
+# Install dependencies
 RUN apt update && rosdep update && rosdep install --from-paths src --ignore-src -r -y
-# Build workspace. If you have less than 16 GB of RAM, you may want to reduce the number of jobs (-j6) to avoid running out of memory.
+
+# Build workspace
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j3' && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DWITH_GRIDMAP=OFF"
-# RUN colcon build --symlink-install
 
 # Clone DEIM and install dependencies
 RUN git clone https://github.com/ShihuaHuang95/DEIM.git && pip3 install -r /root/ws/DEIM/requirements.txt

@@ -35,7 +35,7 @@ docker run -it --name landmark_detector --net=host \
     --env="DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix" \
-    --volume="$(pwd):/root/ws/src/landmark_detector" \
+    --volume="$(pwd)/src:/root/ws/src" \
     --gpus all \
     ros2-humble-gazebo-classic
 ```

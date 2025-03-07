@@ -4,3 +4,10 @@
 [submodule "src/deim"]
 	path = src/deim
 	url = https://github.com/ShihuaHuang95/DEIM.git
+[submodule "src/rtabmap_ros"]
+	path = src/rtabmap_ros
+	url = https://github.com/introlab/rtabmap_ros.git
+	branch = ros2
+[submodule "src/rtabmap"]
+	path = src/rtabmap
+	url = https://github.com/introlab/rtabmap.git

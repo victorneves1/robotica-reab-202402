@@ -11,7 +11,7 @@ from cv_bridge import CvBridge
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../deim/')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../deim/')))
 from engine.core import YAMLConfig
 
 
@@ -75,8 +75,8 @@ def main():
     rclpy.init()
     
     # Load model
-    config_path = "/root/ws/src/landmark_detector/src/deim/configs/deim_dfine/deim_hgnetv2_s_coco.yml"
-    resume_path = "/root/ws/src/landmark_detector/src/models/deim_dfine_hgnetv2_s_coco_120e.pth"
+    config_path = "/root/ws/src/deim/configs/deim_dfine/deim_hgnetv2_s_coco.yml"
+    resume_path = "/root/ws/src/models/deim_dfine_hgnetv2_s_coco_120e.pth"
     
     print(f"Loading model from {resume_path}...")
     cfg = YAMLConfig(config_path, resume=resume_path)

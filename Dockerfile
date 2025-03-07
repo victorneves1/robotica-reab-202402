@@ -24,15 +24,17 @@ RUN apt-get update && apt-get install -y \
     ros-humble-navigation2 \
     ros-humble-robot-localization \
     ros-humble-nav2-bringup \
-    # ros-humble-rtabmap-ros \
+    ros-humble-apriltag-msgs \  
     python3-rosdep \
     python3-pip \
     tmux \
     python3-opencv \
     ros-humble-cv-bridge \
     ros-humble-vision-opencv \
+    libcanberra-gtk3-module \ 
+    x11-apps \
+    mesa-utils \
     && rm -rf /var/lib/apt/lists/*
-
 
 # Install colcon-common-extensions and OpenCV
 RUN pip3 install colcon-common-extensions opencv-python
@@ -43,22 +45,27 @@ RUN pip3 install torch torchvision torchaudio --index-url https://download.pytor
 # Install YOLOv11 dependencies
 RUN pip3 install seaborn pandas requests
 
-# Initialize rosdep (only if not already initialized)
+# Initialize rosdep
 RUN if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then rosdep init; fi && rosdep update
 
 # Set up workspace
 WORKDIR /root/ws
 RUN mkdir -p /root/ws/src
 
-# Clone RTAB-Map repositories **unconditionally** (like the old working version)
+# Clone RTAB-Map repositories
 RUN git clone https://github.com/introlab/rtabmap.git src/rtabmap
 RUN git clone --branch ros2 https://github.com/introlab/rtabmap_ros.git src/rtabmap_ros
 
 # Install dependencies
 RUN apt update && rosdep update && rosdep install --from-paths src --ignore-src -r -y
 
+# Set CMAKE_PREFIX_PATH explicitly
+RUN echo "export CMAKE_PREFIX_PATH=/root/ws/install:$CMAKE_PREFIX_PATH" >> ~/.bashrc
+
 # Build workspace
-RUN /bin/bash -c "source /opt/ros/humble/setup.bash && export MAKEFLAGS='-j3' && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DWITH_GRIDMAP=OFF"
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+    export MAKEFLAGS='-j3' && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DWITH_GRIDMAP=OFF"
 
 # Clone DEIM and install dependencies
 RUN git clone https://github.com/ShihuaHuang95/DEIM.git && pip3 install -r /root/ws/DEIM/requirements.txt
@@ -66,13 +73,15 @@ RUN git clone https://github.com/ShihuaHuang95/DEIM.git && pip3 install -r /root
 # Install NumPy (fix possible PyTorch compatibility issues)
 RUN pip3 install "numpy==1.24.4"
 
-# Set default environment
+# Ensure ROS2 setup is sourced in all new shells
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 RUN echo "source /root/ws/install/setup.bash" >> /root/.bashrc
 
-RUN cp /root/ws/src/rtabmap_ros/rtabmap_launch/launch/*.launch.py /root/ws/install/rtabmap_ros/share/rtabmap_ros/
+# Ensure rtabmap_ros launch files are installed
+RUN mkdir -p /root/ws/install/rtabmap_ros/share/rtabmap_ros/launch
+RUN cp -r /root/ws/src/rtabmap_ros/rtabmap_launch/launch/* /root/ws/install/rtabmap_ros/share/rtabmap_ros/launch/
 
 # Run container in interactive mode
 CMD ["/bin/bash"]

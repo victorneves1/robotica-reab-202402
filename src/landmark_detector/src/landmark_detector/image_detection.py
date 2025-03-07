@@ -11,8 +11,8 @@ from cv_bridge import CvBridge
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../deim/')))
-from engine.core import YAMLConfig
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '/root/ws/src')))
+from deim.engine.core import YAMLConfig
 
 
 class ROS2ImageSubscriber(Node):

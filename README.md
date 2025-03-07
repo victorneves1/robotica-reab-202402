@@ -42,7 +42,7 @@ docker run -it --name landmark_detector --net=host \
 
 Then later you can start the container with:
 ```
-docker start -ai landmark_detector
+xhost +local:docker && docker start -ai landmark_detector
 ```
 If you ever need to clean up:
 ```
@@ -105,7 +105,8 @@ You can also use the script in "scripts/robot_controller.py" to control the robo
 
 To run the rtabmap:
 
-`ros2 launch rtabmap_ros rtabmap.launch.py \
+```
+ros2 launch rtabmap_ros rtabmap.launch.py \
  use_sim_time:=true \
  approx_sync:=true \
  approx_sync_max_interval:=0.02 \
@@ -115,4 +116,11 @@ To run the rtabmap:
  odom_topic:=/odom \
  topic_queue_size:=50 \
  sync_queue_size:=50
- `
+```
+
+To run object detection:
+```
+colcon build --symlink-install --packages-select landmark_detector
+source install/setup.bash
+ros2 run landmark_detector image_detection
+```

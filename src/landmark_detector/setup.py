@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 from glob import glob
 
@@ -7,8 +7,8 @@ package_name = 'landmark_detector'
 setup(
     name=package_name,
     version='0.0.1',
-    packages=[package_name],  # Ensure this is correct
-    package_dir={'': 'src'},  # Tell setuptools where to find the package
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},  # Ensure packages are found inside src/
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Your Name',

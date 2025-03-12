@@ -47,7 +47,7 @@ xhost +local:docker && docker start -ai landmark_detector
 If you ever need to clean up:
 ```
 docker stop landmark_detector
-docker rm landmark_detector
+    docker rm landmark_detector
 ```
 
 ## Interacting with the robot
@@ -119,8 +119,35 @@ ros2 launch rtabmap_ros rtabmap.launch.py \
 ```
 
 To run object detection:
+
+Build the interfaces package first:
+
 ```
-colcon build --symlink-install --packages-select landmark_detector
+colcon build --packages-select landmark_detector_interfaces --symlink-install
 source install/setup.bash
+```
+
+Then build the Python package:
+
+```
+colcon build --packages-select landmark_detector --symlink-install
+source install/setup.bash
+```
+
+Run your node:
+
+```
 ros2 run landmark_detector image_detection
+```
+
+To run the robot controller:
+
+```
+ros2 run landmark_detector robot_controller
+```
+
+To check the published detections:
+
+```
+ros2 topic echo /landmarks
 ```

@@ -1,0 +1,1 @@
+Landmark[] landmarks      # Array of detected landmarks

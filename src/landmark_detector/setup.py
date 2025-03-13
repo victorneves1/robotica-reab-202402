@@ -20,6 +20,7 @@ setup(
         'console_scripts': [
             'image_detection = landmark_detector.image_detection:main',
             'robot_controller = landmark_detector.robot_controller:main',
+            'landmark_marker_publisher = landmark_detector.landmark_marker_publisher:main',
         ],
     },
     data_files=[

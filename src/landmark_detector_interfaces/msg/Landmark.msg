@@ -1,3 +1,9 @@
-string label              # Detected landmark class (e.g., "door", "table")
-float32[] bbox            # Bounding box in format [x_min, y_min, x_max, y_max]
-float32 confidence        # Detection confidence score
+string label
+float32 confidence
+
+float32 x_min
+float32 y_min
+float32 z_min
+float32 x_max
+float32 y_max
+float32 z_max

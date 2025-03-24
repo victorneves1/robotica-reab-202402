@@ -1,71 +1,98 @@
 import rclpy
 from rclpy.node import Node
+from geometry_msgs.msg import Point, Pose, PoseStamped
+from nav_msgs.msg import Odometry
+import tf2_ros
+import tf2_geometry_msgs
 from visualization_msgs.msg import Marker, MarkerArray
-from geometry_msgs.msg import Point
+from landmark_detector_interfaces.msg import LandmarkArray
+from builtin_interfaces.msg import Duration
 
-# Assume your landmark message is defined in landmark_detector_interfaces/msg/Landmark
-from landmark_detector_interfaces.msg import Landmark, LandmarkArray
 
-class LandmarkMarkerPublisher(Node):
+class LandmarkPublisher(Node):
     def __init__(self):
-        super().__init__('landmark_marker_publisher')
-        # Publisher for visualization markers (RViz subscribes to /marker_array)
-        self.marker_pub = self.create_publisher(MarkerArray, 'marker_array', 10)
+        super().__init__('landmark_publisher')
         
-        # Subscribe to the landmarks topic (where your detection node publishes)
+        # Create a publisher for landmarks
+        self.landmark_publisher = self.create_publisher(MarkerArray, '/marker_array', 10)
+        
+        # Create a subscription to the odometry topic to get robot pose
+        self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        
+        # Create a subscription to landmarks
         self.create_subscription(LandmarkArray, '/landmarks', self.landmarks_callback, 10)
+
+        # Create a tf2 listener to transform coordinates
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
         
-        # We'll store the most recent landmarks
-        self.latest_landmarks = []
+        self.robot_pose = None
+
+    def odom_callback(self, msg):
+        # Store the current robot pose from the odometry
+        self.robot_pose = msg.pose.pose
 
     def landmarks_callback(self, msg: LandmarkArray):
-        self.latest_landmarks = msg.landmarks
-        self.publish_markers()
-
-    def publish_markers(self):
-        marker_array = MarkerArray()
-        for i, lm in enumerate(self.latest_landmarks):
-            marker = Marker()
-            marker.header.frame_id = "odom"  # or the correct frame (e.g., "camera_link" or "odom")
-            marker.header.stamp = self.get_clock().now().to_msg()
-            marker.ns = "landmark"
-            marker.id = i
-            marker.type = Marker.CUBE  # We'll draw a cube
-            marker.action = Marker.ADD
-
-            # Compute the center position from the axis-aligned bounding box
-            marker.pose.position.x = (lm.x_min + lm.x_max) / 2.0
-            marker.pose.position.y = (lm.y_min + lm.y_max) / 2.0
-            marker.pose.position.z = (lm.z_min + lm.z_max) / 2.0
-
-            # For axis-aligned boxes, orientation is identity (no rotation)
-            marker.pose.orientation.x = 0.0
-            marker.pose.orientation.y = 0.0
-            marker.pose.orientation.z = 0.0
-            marker.pose.orientation.w = 1.0
-
-            # The scale is the dimensions of the box
-            marker.scale.x = lm.x_max - lm.x_min
-            marker.scale.y = lm.y_max - lm.y_min
-            marker.scale.z = lm.z_max - lm.z_min
-
-            # Set the color (e.g., red with some transparency)
-            marker.color.r = 1.0
-            marker.color.g = 0.0
-            marker.color.b = 0.0
-            marker.color.a = 0.8
-
-            # Optionally, set a lifetime for the marker so it disappears after a while
-            marker.lifetime.sec = 1
-
-            marker_array.markers.append(marker)
+        if self.robot_pose is None:
+            self.get_logger().warn("No robot pose available yet.")
+            return
         
-        self.marker_pub.publish(marker_array)
-        self.get_logger().info(f"Published {len(marker_array.markers)} markers.")
+        # Process the landmarks
+        landmark_array = MarkerArray()
+        for i, landmark in enumerate(msg.landmarks):
+            marker = Marker()
+            marker.header.frame_id = 'map'  # or use 'odom' if you'd like the marker in that frame
+            marker.header.stamp = self.get_clock().now().to_msg()
+            marker.ns = 'landmark'
+            marker.id = i
+            marker.type = Marker.CUBE
+            marker.action = Marker.ADD
+            marker.lifetime = Duration(sec=0, nanosec=0)
+            marker.scale.x = 0.1
+            marker.scale.y = 0.1
+            marker.scale.z = 0.1
+            marker.color.r = 1.0  # Red
+            marker.color.g = 0.0  # Green
+            marker.color.b = 0.0  # Blue
+            marker.color.a = 1.0  # Alpha (transparency)
+
+            # Here we assume the landmark message has x, y, z coordinates
+            x, y, z = landmark.x_min, landmark.y_min, landmark.z_min  # Use appropriate coordinates
+            
+            # Create a PoseStamped for transforming landmark position to the robot frame
+            landmark_pose = PoseStamped()
+            landmark_pose.header.frame_id = "map"  # This could also be 'odom' depending on your reference frame
+            landmark_pose.header.stamp = self.get_clock().now().to_msg()
+            landmark_pose.pose.position.x = x
+            landmark_pose.pose.position.y = y
+            landmark_pose.pose.position.z = 0.0  # No z coordinate for this marker
+            landmark_pose.pose.orientation.w = 1.0  # No rotation for this marker
+
+            try:
+                # Transform the landmark pose to the robot's frame (e.g., 'odom')
+                transform = self.tf_buffer.lookup_transform('odom', landmark_pose.header.frame_id, rclpy.time.Time())
+                transformed_pose = tf2_geometry_msgs.do_transform_pose(landmark_pose.pose, transform)
+
+                # Set the marker position to the transformed coordinates
+                marker.pose.position = transformed_pose.position
+                marker.pose.orientation = transformed_pose.orientation
+
+                # Add the marker to the array
+                landmark_array.markers.append(marker)
+
+            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+                self.get_logger().warn(f"Transform failed: {e}")
+        
+        # Publish the marker array to RViz
+        self.landmark_publisher.publish(landmark_array)
+        self.get_logger().info(f"Published {len(landmark_array.markers)} markers.")
+        if len(landmark_array.markers) > 0:
+            self.get_logger().info(f"First marker: {landmark_array.markers[0]}")
+        
 
 def main():
     rclpy.init()
-    node = LandmarkMarkerPublisher()
+    node = LandmarkPublisher()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

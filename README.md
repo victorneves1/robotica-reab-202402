@@ -1,22 +1,35 @@
-# robotica-reab-202402
-Projeto de Robótica para Reabilitação 2024/02
+# 🤖 Robótica para Reabilitação — 2024/02
+Repositório do projeto de robótica para reabilitação, com simulação, controle e detecção de marcos em ambientes indoor.
 
-## How to clone the repo
+---
 
-### Clone it
-`git clone --recurse-submodules git@github.com:victorneves1/robotica-reab-202402.git`
+## 📦 Clonando o Repositório
 
-### Update submodules
-`git submodule update --remote --recursive`
+Clone o repositório com os submódulos:
 
-## How to run
-
-### Build the docker image
-`docker build -t ros2-humble-gazebo-classic .`
-
-
-### Run the docker container (in the root of the project)
+```bash
+git clone --recurse-submodules git@github.com:victorneves1/robotica-reab-202402.git
 ```
+
+Atualize os submódulos:
+
+```bash
+git submodule update --remote --recursive
+```
+
+---
+
+## 🐳 Rodando com Docker
+
+### 🔧 Construir a imagem Docker:
+
+```bash
+docker build -t ros2-humble-gazebo-classic .
+```
+
+### ▶️ Executar container temporário:
+
+```bash
 xhost +local:docker &&
 docker run -it --rm \
     --net=host \
@@ -29,8 +42,9 @@ docker run -it --rm \
     ros2-humble-gazebo-classic
 ```
 
-Alternatively, create a persistent container:
-```
+### 📌 Criar container persistente:
+
+```bash
 xhost +local:docker &&
 docker run -it --name landmark_detector --net=host \
     --env="DISPLAY" \
@@ -42,71 +56,89 @@ docker run -it --name landmark_detector --net=host \
     ros2-humble-gazebo-classic
 ```
 
-Then later you can start the container with:
-```
+### 🚀 Iniciar o container persistente:
+
+```bash
 xhost +local:docker && docker start -ai landmark_detector
 ```
-If you ever need to clean up:
-```
+
+### 🧹 Limpar container:
+
+```bash
 docker stop landmark_detector && docker rm landmark_detector
 ```
 
-## Interacting with the robot
+---
 
-### Start tmux session
-`tmux`
+## 🧠 Interagindo com o Robô
 
-How to use tmux:
+### 🖥️ Usando o tmux:
+
+```bash
+tmux
 ```
-Split the Terminal Pane:
 
-    To split horizontally: Press Ctrl+B, then %.
-    To split vertically: Press Ctrl+B, then ".
+**Atalhos úteis do tmux:**
 
-Switch Between Panes or Windows:
-
-    Use Ctrl+B, then arrow keys to navigate panes.
-    To create a new window: Press Ctrl+B, then C.
-
-Detach and Reattach Tmux Session:
-
-    Detach from tmux: Press Ctrl+B, then D.
-    Reattach to tmux: Run tmux attach.
+```text
+- Dividir painel horizontal: Ctrl+B, depois %
+- Dividir vertical: Ctrl+B, depois "
+- Alternar painéis: Ctrl+B, depois seta
+- Nova janela: Ctrl+B, depois C
+- Sair do tmux: Ctrl+B, depois D
+- Reentrar: tmux attach
 ```
-### Launch the simulation
 
-Inside a tmux window run:
+---
 
-`ros2 launch bcr_bot gazebo.launch.py`
+### 🕹️ Simulação e Controle
 
-### List all active ROS topics:
+#### Inicializar simulação:
 
-In another tmux window run:
-
-`ros2 topic list`
-
-Inspect live sensor data (e.g., /scan for LiDAR data or /camera/image_raw for the camera):
-
-`ros2 topic echo /scan`
-`ros2 topic echo /kinect_camera/image_raw`
-
-### Move the Robot
-
-Publish a command to make the robot move forward:
-
-`ros2 topic pub /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" -1
-`
-
-Stop the robot:
-
-`ros2 topic pub /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" -1
-`
-
-You can also use the script in "scripts/robot_controller.py" to control the robot in a user friendly way.
-
-To run the rtabmap:
-
+```bash
+ros2 launch bcr_bot gazebo.launch.py
 ```
+
+#### Ver tópicos ROS:
+
+```bash
+ros2 topic list
+```
+
+#### Exibir dados dos sensores (exemplos):
+
+```bash
+ros2 topic echo /scan
+ros2 topic echo /kinect_camera/image_raw
+```
+
+#### Mover o robô:
+
+**Avançar:**
+
+```bash
+ros2 topic pub /cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 1.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" -1
+```
+
+**Parar:**
+
+```bash
+ros2 topic pub /cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}" -1
+```
+
+Ou use o script mais amigável:
+
+```bash
+python3 scripts/robot_controller.py
+```
+
+---
+
+## 🗺️ Rodando o RTAB-Map
+
+```bash
 ros2 launch rtabmap_ros rtabmap.launch.py \
  use_sim_time:=true \
  approx_sync:=true \
@@ -119,63 +151,90 @@ ros2 launch rtabmap_ros rtabmap.launch.py \
  sync_queue_size:=50
 ```
 
-To run object detection:
+---
 
-Build the interfaces package first:
+## 🧠 Detecção de Marcos (Landmarks)
 
-```
+### 1. Compilar o pacote de interfaces:
+
+```bash
 colcon build --packages-select landmark_detector_interfaces --symlink-install
 source install/setup.bash
 ```
 
-Then build the Python package:
+### 2. Compilar o detector:
 
-```
+```bash
 colcon build --packages-select landmark_detector --symlink-install
 source install/setup.bash
 ```
 
-Run your nodes:
+### 3. Rodar os nós:
 
-```
+```bash
 ros2 run landmark_detector image_detection
 ros2 run landmark_detector landmark_marker_publisher
 ```
 
-To run the robot controller:
+### 4. Rodar o controlador do robô:
 
-```
+```bash
 ros2 run landmark_detector robot_controller
 ```
 
-To check the published detections:
+### 5. Verificar detecções:
 
-```
+```bash
 ros2 topic echo /markerarray
 ```
 
------------ HOW TO RUN BAG FILE ------------
-1. Run bag
+---
 
-source /opt/ros/humble/setup.bash &&
-source /root/ws/install/setup.bash &&
-cd /rosbag &&
+## 📂 Rodando arquivos rosbag
+
+(precisa descomentar algumas coisas nos scripts python)
+
+### 1. Rodar o rosbag:
+
+```bash
+source /opt/ros/humble/setup.bash
+source /root/ws/install/setup.bash
+cd /rosbag
 ros2 bag play subset_0.db3 --loop
+```
 
-2. pulbish cmaera param (because I forgot to log it)
+### 2. Publicar parâmetros da câmera:
 
+```bash
 python3 src/landmark_detector/src/landmark_detector/publish_camera_parameters.py
+```
 
-3. Start RViz2
+### 3. Iniciar RViz2:
+
+```bash
 ros2 run rviz2 rviz2
-add the camera and the depth image
+```
 
-4. ros2 run landmark_detector image_detection
+Adicione manualmente a câmera RGB e imagem de profundidade.
 
+### 4. Rodar o detector:
 
-------------- TROUBLESHOOTING -------------
-If you cant see the map on rtabmap, do this:
+```bash
+ros2 run landmark_detector image_detection
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+### RTAB-Map sem exibir mapa?
+
+```bash
 rm /root/.ros/rtabmap.db
+```
 
-If the landmark detection is not working, can't run DEIM, do this:
-- create a __init__.py file in the dei folder
+### Problemas ao rodar DEIM?
+
+- Crie um arquivo vazio chamado `__init__.py` dentro da pasta `deim`.
+
+---

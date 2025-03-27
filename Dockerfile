@@ -24,7 +24,10 @@ RUN apt-get update && apt-get install -y \
     ros-humble-navigation2 \
     ros-humble-robot-localization \
     ros-humble-nav2-bringup \
-    ros-humble-apriltag-msgs \  
+    ros-humble-apriltag-msgs \
+    ros-humble-ros2bag \
+    ros-humble-image-tools \  
+    ros-humble-image-transport-plugins \
     python3-rosdep \
     python3-pip \
     tmux \

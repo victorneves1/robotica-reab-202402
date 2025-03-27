@@ -19,6 +19,17 @@ class ROS2LandmarkDetector(Node):
     def __init__(self, model, device):
         super().__init__('landmark_detector')
         
+        
+        ## -- Rosbag topics
+        # # Subscribe to the RGB image topic
+        # self.create_subscription(Image, '/color/image_raw', self.image_callback, 10)
+        
+        # # Subscribe to the camera info topic
+        # self.create_subscription(CameraInfo, '/color/camera_info', self.camera_info_callback, 10)
+        
+        # # Subscribe to the depth image topic
+        # self.create_subscription(Image, '/aligned_depth_to_color/image_raw', self.depth_callback, 10)
+        
         # Subscribe to the RGB image topic
         self.create_subscription(
             Image, '/kinect_camera/image_raw', self.image_callback, 10)
@@ -30,6 +41,7 @@ class ROS2LandmarkDetector(Node):
         # Subscribe to the depth image topic
         self.create_subscription(
             Image, '/kinect_camera/depth/image_raw', self.depth_callback, 10)
+        
         
         # Publisher for detected landmarks
         self.landmark_publisher = self.create_publisher(LandmarkArray, '/landmarks', 10)
@@ -98,6 +110,8 @@ class ROS2LandmarkDetector(Node):
         scrs = scrs[scrs > thrh]
 
         for i, b in enumerate(boxs):
+            if labs[i].item() in [0, 1]:  # Skip class 1 (person)
+                continue
             draw.rectangle(list(b), outline='red')
             draw.text((b[0], b[1]), text=f"{labs[i].item()} {round(scrs[i].item(), 2)}", fill='blue')
 
@@ -115,6 +129,9 @@ class ROS2LandmarkDetector(Node):
         scrs = scrs[scrs > thrh]
 
         for i, b in enumerate(boxs):
+            if labs[i].item() == 1:  # Skip class 1 (person)
+                continue
+
             # Compute 3D bounding box from the 2D bounding box and the depth image
             x_min, y_min, z_min, x_max, y_max, z_max = self.compute_3d_box_from_2d(b, self.depth_image)
             
@@ -197,8 +214,11 @@ def main():
     rclpy.init()
     
     # Load model configuration and weights
-    config_path = "/root/ws/src/deim/configs/deim_dfine/deim_hgnetv2_s_coco.yml"
-    resume_path = "/root/ws/src/models/deim_dfine_hgnetv2_s_coco_120e.pth"
+    # config_path = "/root/ws/src/deim/configs/deim_dfine/deim_hgnetv2_s_coco.yml"
+    # resume_path = "/root/ws/src/models/deim_dfine_hgnetv2_s_coco_120e.pth"
+    
+    config_path="/root/ws/src/deim/configs/deim_rtdetrv2/deim_r101vd_60e_coco.yml"
+    resume_path="/root/ws/src/models/deim_rtdetrv2_r101vd_coco_60e.pth"
     
     print(f"Loading model from {resume_path}...")
     cfg = YAMLConfig(config_path, resume=resume_path)

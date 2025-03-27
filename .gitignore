@@ -1,5 +1,6 @@
 devel/
 logs/
+rosbag/
 build/
 bin/
 lib/

@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Point, Pose, PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 import tf2_ros
 import tf2_geometry_msgs
@@ -19,8 +20,12 @@ class LandmarkPublisher(Node):
         # Create a subscription to the odometry topic to get robot pose
         self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
         
+        # Create a subscription to the AMCL pose topic to get robot pose when running the ROSBAG
+        # self.create_subscription(PoseWithCovarianceStamped, '/amcl_pose', self.pose_callback, 10)
+        
         # Create a subscription to landmarks
         self.create_subscription(LandmarkArray, '/landmarks', self.landmarks_callback, 10)
+        # self.create_subscription(LandmarkArray, '/landmarks', self.landmarks_callback_rosbag, 10)
 
         # Create a tf2 listener to transform coordinates
         self.tf_buffer = tf2_ros.Buffer()
@@ -28,9 +33,48 @@ class LandmarkPublisher(Node):
         
         self.robot_pose = None
 
+    def pose_callback(self, msg):
+        # Store the current robot pose from AMCL
+        self.robot_pose = msg.pose.pose
+
     def odom_callback(self, msg):
         # Store the current robot pose from the odometry
         self.robot_pose = msg.pose.pose
+
+    def landmarks_callback_rosbag(self, msg: LandmarkArray):
+        if self.robot_pose is None:
+            self.get_logger().warn("No robot pose available yet.")
+            return
+        
+        # Process the landmarks
+        landmark_array = MarkerArray()
+        for i, landmark in enumerate(msg.landmarks):
+            marker = Marker()
+            marker.header.frame_id = 'map'  # Match occupancy grid frame
+            marker.header.stamp = self.get_clock().now().to_msg()
+            marker.ns = 'landmark'
+            marker.id = i
+            marker.type = Marker.CUBE
+            marker.action = Marker.ADD
+            marker.lifetime = Duration(sec=0, nanosec=0)
+            marker.scale.x = 0.1
+            marker.scale.y = 0.1
+            marker.scale.z = 0.1
+            marker.color.r = 1.0
+            marker.color.g = 0.0
+            marker.color.b = 0.0
+            marker.color.a = 1.0
+
+            marker.pose.position.x = landmark.x_min
+            marker.pose.position.y = landmark.y_min
+            marker.pose.position.z = 0.0
+            marker.pose.orientation.w = 1.0
+
+            landmark_array.markers.append(marker)
+
+        self.landmark_publisher.publish(landmark_array)
+        self.get_logger().info(f"Published {len(landmark_array.markers)} markers.")
+
 
     def landmarks_callback(self, msg: LandmarkArray):
         if self.robot_pose is None:

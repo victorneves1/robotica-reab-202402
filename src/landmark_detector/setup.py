@@ -21,6 +21,7 @@ setup(
             'image_detection = landmark_detector.image_detection:main',
             'robot_controller = landmark_detector.robot_controller:main',
             'landmark_marker_publisher = landmark_detector.landmark_marker_publisher:main',
+            'amcl_pose_to_tf = landmark_detector.amcl_pose_to_tf:main',
         ],
     },
     data_files=[
